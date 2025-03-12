@@ -91,7 +91,7 @@ if __name__ == '__main__':
     teacher_student = []
     teacher_coach = []
     # TODO: we need to add the student because one coach can have multiple students
-    coach_student = {}
+    coach_student = []
 
     students = set()
 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
         students.add(student)
 
-        coach_student[coach] = student
+        coach_student.append((coach, student))
         teacher_student.append((teacher, student))
         teacher_coach.append((teacher, coach))
 
@@ -126,13 +126,19 @@ if __name__ == '__main__':
     teacher_expertise = []
 
     # Define unifiers for predicates
+    class Afstudeerder(Predicate):
+        name: ConstantStr
+
     class Docent(Predicate):
         name: ConstantStr
 
-    # Note that we use the teacher-coach connection instead if student (which is implicit)
     class Begeleider(Predicate):
         name: ConstantStr
-        coach: ConstantStr
+        student: ConstantStr
+
+    class Coach(Predicate):
+        name: ConstantStr
+        student: ConstantStr
 
     class Bedrijfsbegeleider(Predicate):
         name: ConstantStr
@@ -158,8 +164,10 @@ if __name__ == '__main__':
     # Create predicates from data
     instance_data = []
 
+    instance_data += [Afstudeerder(name=n) for n in students]
     instance_data += [Docent(name=n) for n in teachers]
-    instance_data += [Begeleider(name=n, coach=c) for n, c in teacher_coach]
+    instance_data += [Begeleider(name=n, student=s) for n, s in teacher_student]
+    instance_data += [Coach(name=n, student=s) for n, s in coach_student]
     instance_data += [Bedrijfsbegeleider(name=n) for n in coaches]
     instance_data += [Expertise(name=n, type=t) for n, t in teacher_expertise]
     instance_data += [Tijdslot(time=t) for t in timeslots]
@@ -175,6 +183,7 @@ if __name__ == '__main__':
 
     # Define solution model
     class Zitting(Predicate):
+        student: ConstantStr
         coach: ConstantStr
         teacher1: ConstantStr
         teacher2: ConstantStr
@@ -184,7 +193,7 @@ if __name__ == '__main__':
 
 
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Docent, Begeleider, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
+    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -202,12 +211,13 @@ if __name__ == '__main__':
             for moment in moments:
                 print("===================================================")
                 print(f"{moment.date} {moment.time} ({moment.room})")
-                print(f"{coach_student[moment.coach]} ({moment.coach})")
+                print(f"{moment.student} ({moment.coach})")
                 print(f"Voorzitter: {moment.teacher1}")
                 print(f"Begeleider: {moment.teacher2}")
 
 
             print()
             print()
+            exit()
 
 

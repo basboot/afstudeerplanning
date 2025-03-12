@@ -38,7 +38,7 @@ max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N, DOCENT, D : aantal_zittin
 
 % #minimize{N:max_aantal_zitting_per_dag(N)}.
 
-#show zitting/6.
+#show zitting/7.
 
 % #show aantal_voorzitter_per_docent/2.
 % #show aantal_begeleider_per_docent/2.
