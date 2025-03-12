@@ -4,6 +4,8 @@ import pandas as pd
 import re
 import numpy as np
 from clorm import Predicate, ConstantStr
+from clorm import FactBase
+from clorm.clingo import Control
 
 teacher_availability_file = "BeschikbaarheidDocentenJuli25.xlsx"
 coach_availability_file = "Beschikbaarheid bedrijfsbegeleider.xlsx"
@@ -171,3 +173,26 @@ if __name__ == '__main__':
 
     print(instance_data)
 
+    instance = FactBase(instance_data)
+
+    # Define solution model
+    class Zitting(Predicate):
+        coach: ConstantStr
+        teacher1: ConstantStr
+        teacher2: ConstantStr
+        room: ConstantStr
+        date: ConstantStr
+        time: ConstantStr
+
+
+    # Connect to clingo
+    ctrl = Control(["1"], unifier=[Docent, Begeleider, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
+    ctrl.load("afstudeerplanning.lp")
+
+    ctrl.add_facts(instance)
+    ctrl.ground([("base", [])])
+
+    with ctrl.solve(yield_=True) as handle:
+        for model in handle:
+            print("solution found")
+            print(model)
