@@ -105,6 +105,11 @@ if __name__ == '__main__':
         student = data['Voornaam student'] + " " + data['Achternaam']
 
         assert teacher in teachers, f"{teacher} unknown"
+
+        # coach can be a teacher
+        if coach in teachers:
+            coaches.add(coach)
+
         assert coach in coaches, f"{coach} unknown"
 
         students.add(student)
