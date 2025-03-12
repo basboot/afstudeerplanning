@@ -90,10 +90,10 @@ if __name__ == '__main__':
 
     teacher_student = []
     teacher_coach = []
-    coach_student = []
+    # TODO: we need to add the student because one coach can have multiple students
+    coach_student = {}
 
     students = set()
-    coaches = set()
 
     print(teachers)
 
@@ -105,13 +105,11 @@ if __name__ == '__main__':
         student = data['Voornaam student'] + " " + data['Achternaam']
 
         assert teacher in teachers, f"{teacher} unknown"
-        # TODO: ignore until we have all data
-        # assert coach in coaches, f"{coach} unknown"
+        assert coach in coaches, f"{coach} unknown"
 
-        coaches.add(coach)
         students.add(student)
 
-        coach_student.append((coach, student))
+        coach_student[coach] = student
         teacher_student.append((teacher, student))
         teacher_coach.append((teacher, coach))
 
@@ -122,9 +120,9 @@ if __name__ == '__main__':
     print(f"#students: {len(students)}")
     print(f"#coaches: {len(coaches)}")
 
+    print(coaches)
 
-    # TODO: coaches availability
-    # TODO: expertise
+    # TODO: expertise (input + asp)
     teacher_expertise = []
 
     # Define unifiers for predicates
@@ -196,3 +194,16 @@ if __name__ == '__main__':
         for model in handle:
             print("solution found")
             print(model)
+            solution = model.facts(atoms=True)
+            print(solution)
+
+            query = solution.query(Zitting)
+            moments = list(query.all())
+            for moment in moments:
+                print("===================================================")
+                print(f"{moment.date} {moment.time} ({moment.room})")
+                print(f"{coach_student[moment.coach]} ({moment.coach})")
+                print(f"Voorzitter: {moment.teacher1}")
+                print(f"Begeleider: {moment.teacher2}")
+
+
