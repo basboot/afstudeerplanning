@@ -1,37 +1,5 @@
-docent(bas; bob; dieuwertje; nathalie).
+% Facts will be created in Python
 
-% aanname: student kan als bedrijfsbegeleider kan (zo niet dan toevoegen aan zitting, check beschikbaarheid + check gelijk met bedrijf)
-bedrijfsbegeleider(a; b; c; d; e; f; g; h).
-
-begeleider(bas, B) :- B = (a; b).
-begeleider(nathalie, B) :- B = (e).
-begeleider(bob, B) :- B = (f; g; h).
-begeleider(dieuwertje, B) :- B = (c; d).
-
-expertise(bas, ontwikkelen).
-expertise(bob, ontwikkelen).
-expertise(dieuwertje, ontwerpen).
-expertise(dieuwertje, ontwikkelen).
-expertise(nathalie, ontwerpen).
-
-tijdslot(t1; t2; t3; t4).
-
-dag(d1; d2).
-
-lokaal(l1; l2;).
-
-beschikbaar(bas, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(nathalie, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(bob, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(dieuwertje, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(a, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(b, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(c, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(d, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(e, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(f, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(g, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
-beschikbaar(h, D, T) :- (D, T) = (d1, t1; d1, t2; d1, t3; d1, t4; d2, t1; d2, t2; d2, t3; d2, t4).
 % Generate
 1 {zitting(BEDRIJF, VOORZITTER, BEGELEIDER, L, D, T): docent(VOORZITTER), docent(BEGELEIDER), lokaal(L), dag(D), tijdslot(T)} 1 :- bedrijfsbegeleider(BEDRIJF).
 
@@ -70,16 +38,16 @@ max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N, DOCENT, D : aantal_zittin
 
 
 
-#minimize{N:max_aantal_zitting_per_dag(N)}.
+% #minimize{N:max_aantal_zitting_per_dag(N)}.
 
 #show zitting/6.
 
 % #show aantal_voorzitter_per_docent/2.
 % #show aantal_begeleider_per_docent/2.
 
-#show aantal_zitting_per_dag/3.
+% #show aantal_zitting_per_dag/3.
 
-#show max_aantal_zitting_per_dag/1.
+% #show max_aantal_zitting_per_dag/1.
 
 % aantal_zitting_per_dag(dieuwertje,d1,3)
 
