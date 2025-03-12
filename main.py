@@ -10,6 +10,7 @@ from clorm.clingo import Control
 teacher_availability_file = "BeschikbaarheidDocentenJuli25.xlsx"
 coach_availability_file = "Beschikbaarheid bedrijfsbegeleider.xlsx"
 teacher_student_coach_file = "Afstudeerders 2024-2025.xlsx"
+teacher_expertise_file = "Expertises.xlsx"
 
 # Assumption: teacher names are unique
 teachers = set()
@@ -20,7 +21,7 @@ timeslots = set()
 days = set()
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(3)]
+rooms = [f"room{i}" for i in range(1)]
 
 availability = defaultdict(set)
 
@@ -90,7 +91,6 @@ if __name__ == '__main__':
 
     teacher_student = []
     teacher_coach = []
-    # TODO: we need to add the student because one coach can have multiple students
     coach_student = []
 
     students = set()
@@ -122,8 +122,17 @@ if __name__ == '__main__':
 
     print(coaches)
 
-    # TODO: expertise (input + asp)
-    teacher_expertise = []
+    teacher_expertise = {}
+    df = pd.read_excel(teacher_expertise_file).replace(np.nan, '')
+    for i in range(df.shape[0]):
+        data = df.iloc[i].to_dict()
+
+        teacher = data['Naam']
+        expertise = data['Expertise']
+        teacher_expertise[teacher] = expertise
+
+    print(teacher_expertise)
+
 
     # Define unifiers for predicates
     class Afstudeerder(Predicate):
@@ -166,10 +175,10 @@ if __name__ == '__main__':
 
     instance_data += [Afstudeerder(name=n) for n in students]
     instance_data += [Docent(name=n) for n in teachers]
+    instance_data += [Expertise(name=n, type=teacher_expertise[n]) for n in teachers]
     instance_data += [Begeleider(name=n, student=s) for n, s in teacher_student]
     instance_data += [Coach(name=n, student=s) for n, s in coach_student]
     instance_data += [Bedrijfsbegeleider(name=n) for n in coaches]
-    instance_data += [Expertise(name=n, type=t) for n, t in teacher_expertise]
     instance_data += [Tijdslot(time=t) for t in timeslots]
     instance_data += [Dag(date=d) for d in days]
     instance_data += [Lokaal(room=r) for r in rooms]
@@ -193,7 +202,7 @@ if __name__ == '__main__':
 
 
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
+    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)

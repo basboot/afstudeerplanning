@@ -14,6 +14,9 @@ aantal_zitting_per_dag(DOCENT, D, N) :- docent(DOCENT), dag(D), N = #count { (DO
 
 max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N, DOCENT, D : aantal_zitting_per_dag(DOCENT, D, N) }.
 
+expertise_tijdens_zitting(A, E) :- zitting(A, _, V, _, _, _, _), expertise(V, E).
+expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E).
+
 % Test
 % voorzitter en begeleider verschillend
 :- zitting(_, _, VOORZITTER, BEGELEIDER, _, _, _), VOORZITTER = BEGELEIDER.
@@ -35,9 +38,9 @@ max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N, DOCENT, D : aantal_zittin
 :- zitting(A1, _, _, _, L, D, T), zitting(A2, _, _, _, L, D, T), A1 != A2.
 % docent niet bij 2 zittingen (2 lokalen) tegelijkertijd
 :- zitting_moment(DOCENT, L1, D, T), zitting_moment(DOCENT, L2, D, T), L1 != L2.
-% bedrijf niet bij 2 zittingen (2 lokalen) tegelijkertijd (sommige bedrijfsbegeleiders hebben meerdere studenten)
-:- zitting(_, B, _, _, L1, D, T), zitting(_, B, _, _, L2, D, T), L1 != L2.
 
+% expertise ontwikkelen moet bij elke zitting zijn
+:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
 
 % #minimize{N:max_aantal_zitting_per_dag(N)}.
 
