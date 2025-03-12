@@ -10,7 +10,7 @@ zitting_moment(DOCENT, L, D, T) :- zitting(_, _, _, DOCENT, L, D, T).
 aantal_voorzitter_per_docent(VOORZITTER, N) :- docent(VOORZITTER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, VOORZITTER, _,_,_,_) }.
 aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, _, BEGELEIDER,_,_,_) }.
 
-aantal_zitting_per_dag(DOCENT, D, N) :- docent(DOCENT), dag(D), N = #count { (DOCENT, L, D, T) : zitting_moment(DOCENT, L, D, T)}.
+aantal_zitting_per_dag(DOCENT, D, N) :- docent(DOCENT), dag(D), N = #count { L, T : zitting_moment(DOCENT, L, D, T)}.
 
 max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N, DOCENT, D : aantal_zitting_per_dag(DOCENT, D, N) }.
 
@@ -44,7 +44,7 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 
 % #minimize{N:max_aantal_zitting_per_dag(N)}.
 
-#show zitting/7.
+% #show zitting/7.
 
 % #show aantal_voorzitter_per_docent/2.
 % #show aantal_begeleider_per_docent/2.
