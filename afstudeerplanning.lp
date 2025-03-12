@@ -7,10 +7,8 @@
 zitting_moment(DOCENT, L, D, T) :- zitting(_, DOCENT, _, L, D, T).
 zitting_moment(DOCENT, L, D, T) :- zitting(_, _, DOCENT, L, D, T).
 
-% TODO: waarom werken wildcards (_) hier niet?
-% UITZOEKEN!!!!
-aantal_voorzitter_per_docent(VOORZITTER, N) :- docent(VOORZITTER), N = #count { (BEDRIJF, VOORZITTER, L, D, T) : zitting(BEDRIJF, VOORZITTER, BEGELEIDER, L, D, T) }.
-aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { (BEDRIJF, VOORZITTER, L, D, T) : zitting(BEDRIJF, VOORZITTER, BEGELEIDER, L, D, T) }.
+aantal_voorzitter_per_docent(VOORZITTER, N) :- docent(VOORZITTER), N = #count { BEDRIJF : zitting(BEDRIJF, VOORZITTER, _,_,_,_) }.
+aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { BEDRIJF : zitting(BEDRIJF, _, BEGELEIDER,_,_,_) }.
 
 aantal_zitting_per_dag(DOCENT, D, N) :- docent(DOCENT), dag(D), N = #count { (DOCENT, L, D, T) : zitting_moment(DOCENT, L, D, T)}.
 
