@@ -208,8 +208,11 @@ if __name__ == '__main__':
     ctrl.add_facts(instance)
     ctrl.ground([("base", [])])
 
+
     with ctrl.solve(yield_=True) as handle:
+        solution_found = False
         for model in handle:
+            solution_found = True
             print("solution found")
             print(model)
             solution = model.facts(atoms=True)
@@ -225,8 +228,12 @@ if __name__ == '__main__':
                 print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
 
 
+
+
             print()
             print()
             exit()
 
+        if not solution_found:
+            print("No solution possible")
 
