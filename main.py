@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
 
     # Connect to clingo
-    ctrl = Control(["1"], unifier=[Docent, Begeleider, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
+    ctrl = Control(["0"], unifier=[Docent, Begeleider, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -205,5 +205,9 @@ if __name__ == '__main__':
                 print(f"{coach_student[moment.coach]} ({moment.coach})")
                 print(f"Voorzitter: {moment.teacher1}")
                 print(f"Begeleider: {moment.teacher2}")
+
+
+            print()
+            print()
 
 
