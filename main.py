@@ -120,3 +120,54 @@ if __name__ == '__main__':
     print(f"#students: {len(students)}")
     print(f"#coaches: {len(coaches)}")
 
+
+    # TODO: coaches availability
+    # TODO: expertise
+    teacher_expertise = []
+
+    # Define unifiers for predicates
+    class Docent(Predicate):
+        name: ConstantStr
+
+    # Note that we use the teacher-coach connection instead if student (which is implicit)
+    class Begeleider(Predicate):
+        name: ConstantStr
+        coach: ConstantStr
+
+    class Bedrijfsbegeleider(Predicate):
+        name: ConstantStr
+
+    class Expertise(Predicate):
+        name: ConstantStr
+        type: ConstantStr
+
+    class Tijdslot(Predicate):
+        time: ConstantStr
+
+    class Dag(Predicate):
+        date: ConstantStr
+
+    class Lokaal(Predicate):
+        room: ConstantStr
+
+    class Beschikbaar(Predicate):
+        name: ConstantStr
+        date: ConstantStr
+        time: ConstantStr
+
+    # Create predicates from data
+    instance_data = []
+
+    instance_data += [Docent(name=n) for n in teachers]
+    instance_data += [Begeleider(name=n, coach=c) for n, c in teacher_coach]
+    instance_data += [Bedrijfsbegeleider(name=n) for n in coaches]
+    instance_data += [Expertise(name=n, type=t) for n, t in teacher_expertise]
+    instance_data += [Tijdslot(time=t) for t in timeslots]
+    instance_data += [Dag(date=d) for d in days]
+    instance_data += [Lokaal(room=r) for r in rooms]
+
+    for person, available in availability.items():
+        instance_data += [Beschikbaar(name=person, date=d, time=t) for d, t in available]
+
+    print(instance_data)
+
