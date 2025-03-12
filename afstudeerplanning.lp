@@ -20,6 +20,8 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 % Test
 % voorzitter en begeleider verschillend
 :- zitting(_, _, VOORZITTER, BEGELEIDER, _, _, _), VOORZITTER = BEGELEIDER.
+% voorzitter en bedrijfsbegeleider verschillend (mogelijk bij startup coach)
+:- zitting(_, BEDRIJF, VOORZITTER, _, _, _, _), VOORZITTER = BEDRIJF.
 % voorzitter is geen begeleider van afstudeerder
 :- zitting(AFSTUDEERDER, _, VOORZITTER, _, _, _, _), begeleider(VOORZITTER, AFSTUDEERDER).
 % begeleider moet begeleider zijn van afstudeerder
