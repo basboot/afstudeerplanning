@@ -39,14 +39,12 @@ if __name__ == '__main__':
             teacher = data['Docent']
             teachers.add(teacher)
         if teacher == "":
-            print("skip until teach found")
-            continue
+            continue # skip first line
 
         timeslot = data['Tijdslot']
         timeslots.add(timeslot)
 
         for day, available in data.items():
-            print(day)
             pattern = r"^[A-Za-z]+ \d{1,2} [A-Za-z]+$"
             # extract (valid) days
             if re.match(pattern, day):
@@ -68,11 +66,8 @@ if __name__ == '__main__':
         coach = data['Voornaam'] + " " + data['Achternaam']
         coaches.add(coach)
 
-        print(coach)
-
         for day, available in data.items():
             day = day.replace(" beschikbaar op:", "")
-            print(day)
             pattern = r"^[A-Za-z]+ \d{1,2} [A-Za-z]+$"
             # extract (valid) days
             if re.match(pattern, day):
@@ -81,21 +76,17 @@ if __name__ == '__main__':
                     if timeslot == "" or timeslot == "Niet":
                         continue # only process available slots
                     assert timeslot in timeslots, f"Illegal timeslot {timeslot} in coach availability"
-                    print(timeslot)
 
                     availability[coach].add((day, timeslot))
 
     # Students + connections
     df = pd.read_excel(teacher_student_coach_file).replace(np.nan, '')
 
-
     teacher_student = []
     teacher_coach = []
     coach_student = []
 
     students = set()
-
-    print(teachers)
 
     for i in range(df.shape[0]):
         data = df.iloc[i].to_dict()
@@ -119,13 +110,11 @@ if __name__ == '__main__':
         teacher_coach.append((teacher, coach))
 
 
-    print(availability)
-    print(f"#timeslots: {len(timeslots)}")
-    print(f"#days: {len(days)}")
-    print(f"#students: {len(students)}")
-    print(f"#coaches: {len(coaches)}")
-
-    print(coaches)
+    print(f"timeslots: {len(timeslots)}")
+    print(f"days: {len(days)}")
+    print(f"teachers: {len(teachers)}")
+    print(f"students: {len(students)}")
+    print(f"coaches: {len(coaches)}")
 
     teacher_expertise = {}
     df = pd.read_excel(teacher_expertise_file).replace(np.nan, '')
@@ -135,9 +124,6 @@ if __name__ == '__main__':
         teacher = data['Naam']
         expertise = data['Expertise']
         teacher_expertise[teacher] = expertise
-
-    print(teacher_expertise)
-
 
     # Define unifiers for predicates
     class Afstudeerder(Predicate):
@@ -206,8 +192,12 @@ if __name__ == '__main__':
         time: ConstantStr
 
 
+    class Max_aantal_zitting_per_dag(Predicate):
+        n: int
+
+
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting])
+    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Max_aantal_zitting_per_dag])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -219,9 +209,13 @@ if __name__ == '__main__':
         for model in handle:
             solution_found = True
             print("solution found")
-            print(model)
             solution = model.facts(atoms=True)
+
             print(solution)
+
+            query = solution.query(Max_aantal_zitting_per_dag)
+            max_zittingen = list(query.all())
+            print(f"Maximum per teacher per day: {max_zittingen[0].n}")
 
             query = solution.query(Zitting)
             moments = list(query.all())
