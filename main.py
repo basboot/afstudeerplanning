@@ -221,8 +221,8 @@ if __name__ == '__main__':
                 print("===================================================")
                 print(f"{moment.date} {moment.time} ({moment.room})")
                 print(f"{moment.student} ({moment.coach})")
-                print(f"Voorzitter: {moment.teacher1}")
-                print(f"Begeleider: {moment.teacher2}")
+                print(f"Voorzitter: {moment.teacher1} - expertise: {teacher_expertise[moment.teacher1]}")
+                print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
 
 
             print()
