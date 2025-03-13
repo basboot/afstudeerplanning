@@ -24,7 +24,7 @@ timeslots = set()
 days = set()
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(1)]
+rooms = [f"room{i}" for i in range(2)]
 
 availability = defaultdict(set)
 
@@ -216,6 +216,8 @@ if __name__ == '__main__':
 
     print(instance_data)
 
+    restrict_empty_rooms = [f":- zitting(_, _, _, _, {rooms[i]}, D, T), not zitting(_, _, _, _, {rooms[i-1]}, D, T)." for i in range(1, len(rooms))]
+
     instance = FactBase(instance_data)
 
     # Define solution model
@@ -238,12 +240,21 @@ if __name__ == '__main__':
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
+
+    for restrict_empty_room in restrict_empty_rooms:
+        ctrl.add("base", [], restrict_empty_room)
+
     ctrl.ground([("base", [])])
 
-
+    start_time = time.time()
+    count = 0
     with ctrl.solve(yield_=True) as handle:
         solution_found = False
         for model in handle:
+            count += 1
+            if count > 1:
+                continue
+
             solution_found = True
             print("solution found")
             solution = model.facts(atoms=True)
@@ -272,7 +283,9 @@ if __name__ == '__main__':
 
             print()
             print()
-            exit()
+            # exit()
+        print(f"Number of solutions {count}")
+        print(f"Running time: {time.time() - start_time}")
 
         if not solution_found:
             print("No solution possible")
