@@ -23,7 +23,7 @@ timeslots = set()
 days = set()
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(2)]
+rooms = [f"room{i}" for i in range(1)]
 
 availability = defaultdict(set)
 
@@ -136,9 +136,6 @@ if __name__ == '__main__':
             if total_matches == 0:
                 print(f"ERROR: availability for {coach} does not match any of the other teachers, not planning for student {student}")
                 continue
-            else:
-                print(
-                    f"INFO: availability for {teacher} and {coach} at {len(availability[coach])} timeslots for student {student}")
         else:
             assert total_matches > 0, f"availability for {coach} does not match any of the other teachers"
 
