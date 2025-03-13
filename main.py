@@ -80,7 +80,7 @@ if __name__ == '__main__':
                     availability[coach].add((day, timeslot))
 
     # Students + connections
-    df = pd.read_excel(teacher_student_coach_file).replace(np.nan, '')
+    df = pd.read_excel(teacher_student_coach_file, sheet_name='Sem. 2').replace(np.nan, '')
 
     teacher_student = []
     teacher_coach = []
