@@ -239,6 +239,10 @@ if __name__ == '__main__':
                 print(f"Voorzitter: {moment.teacher1} - expertise: {teacher_expertise[moment.teacher1]}")
                 print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
 
+                assert (moment.date, moment.time) in availability[moment.teacher1], f"wrong assignment for {moment.teacher1}"
+                assert (moment.date, moment.time) in availability[moment.teacher2], f"wrong assignment for {moment.teacher2}"
+                assert (moment.date, moment.time) in availability[moment.coach], f"wrong assignment for {moment.coach}"
+
 
 
 
