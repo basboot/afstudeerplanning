@@ -7,6 +7,8 @@ from clorm import Predicate, ConstantStr
 from clorm import FactBase
 from clorm.clingo import Control
 
+DEBUG = True
+
 teacher_availability_file = "BeschikbaarheidDocentenJuli25.xlsx"
 coach_availability_file = "Beschikbaarheid bedrijfsbegeleider.xlsx"
 teacher_student_coach_file = "Afstudeerders 2024-2025.xlsx"
@@ -21,7 +23,7 @@ timeslots = set()
 days = set()
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(1)]
+rooms = [f"room{i}" for i in range(4)]
 
 availability = defaultdict(set)
 
@@ -65,6 +67,7 @@ if __name__ == '__main__':
 
         coach = data['Voornaam'] + " " + data['Achternaam']
         coaches.add(coach)
+        print(coach)
 
         for day, available in data.items():
             day = day.replace(" beschikbaar op:", "")
@@ -90,6 +93,7 @@ if __name__ == '__main__':
 
     for i in range(df.shape[0]):
         data = df.iloc[i].to_dict()
+        # print(data)
 
         teacher = data['Afstudeerbegeleider']
         coach = data['Bedrijfsbegeleider']
@@ -101,7 +105,13 @@ if __name__ == '__main__':
         if coach in teachers:
             coaches.add(coach)
 
-        assert coach in coaches, f"{coach} unknown"
+        if DEBUG:
+            pass
+            if coach not in coaches:
+                print(f"WARNING: availability for {coach} unknown, cannot plan for student {student}")
+                continue
+        else:
+            assert coach in coaches, f"{coach} unknown"
 
         students.add(student)
 
@@ -109,9 +119,9 @@ if __name__ == '__main__':
         teacher_student.append((teacher, student))
         teacher_coach.append((teacher, coach))
 
-
-    print(f"timeslots: {len(timeslots)}")
+    print(f"rooms: {len(rooms)}")
     print(f"days: {len(days)}")
+    print(f"timeslots: {len(timeslots)}")
     print(f"teachers: {len(teachers)}")
     print(f"students: {len(students)}")
     print(f"coaches: {len(coaches)}")
