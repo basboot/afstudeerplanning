@@ -42,7 +42,7 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 :- zitting_moment(DOCENT, L1, D, T), zitting_moment(DOCENT, L2, D, T), L1 != L2.
 
 % expertise ontwikkelen moet bij elke zitting zijn
-:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
+% :- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
 
 % #minimize{N:max_aantal_zitting_per_dag(N)}.
 
