@@ -23,7 +23,7 @@ timeslots = set()
 days = set()
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(4)]
+rooms = [f"room{i}" for i in range(2)]
 
 availability = defaultdict(set)
 
@@ -67,7 +67,8 @@ if __name__ == '__main__':
 
         coach = data['Voornaam'] + " " + data['Achternaam']
         coaches.add(coach)
-        print(coach)
+        if DEBUG:
+            print(f"INFO: reading availability for {coach}")
 
         for day, available in data.items():
             day = day.replace(" beschikbaar op:", "")
@@ -110,6 +111,8 @@ if __name__ == '__main__':
             if coach not in coaches:
                 print(f"WARNING: availability for {coach} unknown, cannot plan for student {student}")
                 continue
+            else:
+                print(f"INFO: availability for {teacher} and {coach} known, planning for student {student}")
         else:
             assert coach in coaches, f"{coach} unknown"
 
