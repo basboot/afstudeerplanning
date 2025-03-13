@@ -169,6 +169,10 @@ if __name__ == '__main__':
     class Docent(Predicate):
         name: ConstantStr
 
+    class Docentorder(Predicate):
+        name: ConstantStr
+        prio: int
+
     class Begeleider(Predicate):
         name: ConstantStr
         student: ConstantStr
@@ -203,6 +207,7 @@ if __name__ == '__main__':
 
     instance_data += [Afstudeerder(name=n) for n in students]
     instance_data += [Docent(name=n) for n in teachers]
+    instance_data += [Docentorder(name=n, prio=p) for p, n in enumerate(teachers)]
     instance_data += [Expertise(name=n, type=teacher_expertise[n]) for n in teachers]
     instance_data += [Begeleider(name=n, student=s) for n, s in teacher_student]
     instance_data += [Coach(name=n, student=s) for n, s in coach_student]
@@ -217,6 +222,8 @@ if __name__ == '__main__':
     print(instance_data)
 
     restrict_empty_rooms = [f":- zitting(_, _, _, _, {rooms[i]}, D, T), not zitting(_, _, _, _, {rooms[i-1]}, D, T)." for i in range(1, len(rooms))]
+
+    restrict_orders = [f":- zitting(_, _, _, B1, {rooms[i - 1]}, D, T), zitting(_, _, _, B2, {rooms[i]}, D, T), docent(B1), docent(B2), docentorder(B1, O1), docentorder(B2, O2), O1 > O2." for i in range(1, len(rooms))]
 
     instance = FactBase(instance_data)
 
@@ -236,13 +243,16 @@ if __name__ == '__main__':
 
 
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Max_aantal_zitting_per_dag])
+    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Max_aantal_zitting_per_dag])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
 
     for restrict_empty_room in restrict_empty_rooms:
         ctrl.add("base", [], restrict_empty_room)
+
+    for restrict_order in restrict_orders:
+        ctrl.add("base", [], restrict_order)
 
     ctrl.ground([("base", [])])
 
