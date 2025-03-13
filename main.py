@@ -111,10 +111,20 @@ if __name__ == '__main__':
             if coach not in coaches:
                 print(f"WARNING: availability for {coach} unknown, cannot plan for student {student}")
                 continue
-            else:
-                print(f"INFO: availability for {teacher} and {coach} known, planning for student {student}")
         else:
             assert coach in coaches, f"{coach} unknown"
+
+        # reduce availability of coach, to moments the teacher is also available
+        availability[coach] = availability[coach].intersection(availability[teacher])
+
+        if DEBUG:
+            if len(availability[coach]) == 0:
+                print(f"ERROR: availability for {teacher} and {coach} does not match, planning for student {student}")
+                continue
+            else:
+                print(f"INFO: availability for {teacher} and {coach} at { len(availability[coach]) } timeslots for student {student}")
+        else:
+            assert len(availability[coach]) > 0, f"availability for {teacher} and {coach} does not match"
 
         students.add(student)
 
