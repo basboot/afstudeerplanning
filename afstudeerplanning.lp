@@ -12,7 +12,7 @@ aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { 
 
 aantal_zitting_per_dag(DOCENT, D, N) :- docent(DOCENT), dag(D), N = #count { L, T : zitting_moment(DOCENT, L, D, T)}.
 
-max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N : aantal_zitting_per_dag(DOCENT, D, N) }, docent(DOCENT), dag(D).
+max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N, DOCENT, D : aantal_zitting_per_dag(DOCENT, D, N) }.
 
 expertise_tijdens_zitting(A, E) :- zitting(A, _, V, _, _, _, _), expertise(V, E).
 expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E).
