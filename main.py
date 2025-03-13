@@ -119,12 +119,28 @@ if __name__ == '__main__':
 
         if DEBUG:
             if len(availability[coach]) == 0:
-                print(f"ERROR: availability for {teacher} and {coach} does not match, planning for student {student}")
+                print(f"ERROR: availability for {teacher} and {coach} does not match, not planning for student {student}")
                 continue
             else:
                 print(f"INFO: availability for {teacher} and {coach} at { len(availability[coach]) } timeslots for student {student}")
         else:
             assert len(availability[coach]) > 0, f"availability for {teacher} and {coach} does not match"
+
+        total_matches = 0
+        for teacher2 in teachers:
+            if teacher == teacher2:
+                continue # skip self
+            total_matches += len(availability[coach].intersection(availability[teacher2]))
+
+        if DEBUG:
+            if total_matches == 0:
+                print(f"ERROR: availability for {coach} does not match any of the other teachers, not planning for student {student}")
+                continue
+            else:
+                print(
+                    f"INFO: availability for {teacher} and {coach} at {len(availability[coach])} timeslots for student {student}")
+        else:
+            assert total_matches > 0, f"availability for {coach} does not match any of the other teachers"
 
         students.add(student)
 
