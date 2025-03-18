@@ -8,6 +8,76 @@ from clorm import Predicate, ConstantStr
 from clorm import FactBase
 from clorm.clingo import Control
 
+
+# Define unifiers for predicates
+class Afstudeerder(Predicate):
+    name: ConstantStr
+
+
+class Docent(Predicate):
+    name: ConstantStr
+
+
+class Docentorder(Predicate):
+    name: ConstantStr
+    prio: int
+
+
+class Begeleider(Predicate):
+    name: ConstantStr
+    student: ConstantStr
+
+
+class Coach(Predicate):
+    name: ConstantStr
+    student: ConstantStr
+
+
+class Bedrijfsbegeleider(Predicate):
+    name: ConstantStr
+
+
+class Expertise(Predicate):
+    name: ConstantStr
+    type: ConstantStr
+
+
+class Tijdslot(Predicate):
+    time: ConstantStr
+
+
+class Dag(Predicate):
+    date: ConstantStr
+
+
+class Lokaal(Predicate):
+    room: ConstantStr
+
+
+class Beschikbaar(Predicate):
+    name: ConstantStr
+    date: ConstantStr
+    time: ConstantStr
+
+# Define solution model
+class Zitting(Predicate):
+    student: ConstantStr
+    coach: ConstantStr
+    teacher1: ConstantStr
+    teacher2: ConstantStr
+    room: ConstantStr
+    date: ConstantStr
+    time: ConstantStr
+
+class Zitting_required(Predicate):
+    student: ConstantStr
+    coach: ConstantStr
+    teacher: ConstantStr
+
+
+class Max_aantal_zitting_per_dag(Predicate):
+    n: int
+
 DEBUG = True
 
 teacher_availability_file = "BeschikbaarheidDocentenJuli25.xlsx"
@@ -27,6 +97,8 @@ days = set()
 rooms = [f"room{i}" for i in range(2)]
 
 availability = defaultdict(set)
+
+zitting_constraints = []
 
 if __name__ == '__main__':
     # Read data from Excel files
@@ -146,6 +218,11 @@ if __name__ == '__main__':
         teacher_student.append((teacher, student))
         teacher_coach.append((teacher, coach))
 
+        # add zitting to answer set
+        zitting_constraints.append(Zitting_required(student=student, coach=coach, teacher=teacher))
+
+    print(zitting_constraints)
+
     print(f"rooms: {len(rooms)}")
     print(f"days: {len(days)}")
     print(f"timeslots: {len(timeslots)}")
@@ -162,48 +239,11 @@ if __name__ == '__main__':
         expertise = data['Expertise']
         teacher_expertise[teacher] = expertise
 
-    # Define unifiers for predicates
-    class Afstudeerder(Predicate):
-        name: ConstantStr
 
-    class Docent(Predicate):
-        name: ConstantStr
-
-    class Docentorder(Predicate):
-        name: ConstantStr
-        prio: int
-
-    class Begeleider(Predicate):
-        name: ConstantStr
-        student: ConstantStr
-
-    class Coach(Predicate):
-        name: ConstantStr
-        student: ConstantStr
-
-    class Bedrijfsbegeleider(Predicate):
-        name: ConstantStr
-
-    class Expertise(Predicate):
-        name: ConstantStr
-        type: ConstantStr
-
-    class Tijdslot(Predicate):
-        time: ConstantStr
-
-    class Dag(Predicate):
-        date: ConstantStr
-
-    class Lokaal(Predicate):
-        room: ConstantStr
-
-    class Beschikbaar(Predicate):
-        name: ConstantStr
-        date: ConstantStr
-        time: ConstantStr
 
     # Create predicates from data
     instance_data = []
+    instance_data += zitting_constraints
 
     instance_data += [Afstudeerder(name=n) for n in students]
     instance_data += [Docent(name=n) for n in teachers]
@@ -227,23 +267,11 @@ if __name__ == '__main__':
 
     instance = FactBase(instance_data)
 
-    # Define solution model
-    class Zitting(Predicate):
-        student: ConstantStr
-        coach: ConstantStr
-        teacher1: ConstantStr
-        teacher2: ConstantStr
-        room: ConstantStr
-        date: ConstantStr
-        time: ConstantStr
 
-
-    class Max_aantal_zitting_per_dag(Predicate):
-        n: int
 
 
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Max_aantal_zitting_per_dag])
+    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -292,6 +320,7 @@ if __name__ == '__main__':
 
 
             print()
+            print(f"Running time: {time.time() - start_time}")
             print()
             # exit()
         print(f"Number of solutions {count}")

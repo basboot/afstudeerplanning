@@ -1,7 +1,8 @@
 % Facts will be created in Python
 
 % Generate
-1 {zitting(AFSTUDEERDER, BEDRIJF, VOORZITTER, BEGELEIDER, L, D, T): bedrijfsbegeleider(BEDRIJF), docent(VOORZITTER), docent(BEGELEIDER), lokaal(L), dag(D), tijdslot(T)} 1 :- afstudeerder(AFSTUDEERDER).
+1 { zitting(AFSTUDEERDER, BEDRIJF, VOORZITTER, BEGELEIDER, L, D, T) : docent(VOORZITTER), lokaal(L), dag(D), tijdslot(T) } 1 :- zitting_required(AFSTUDEERDER, BEDRIJF, BEGELEIDER).
+%1 {zitting(AFSTUDEERDER, BEDRIJF, VOORZITTER, BEGELEIDER, L, D, T): bedrijfsbegeleider(BEDRIJF), docent(VOORZITTER), docent(BEGELEIDER), lokaal(L), dag(D), tijdslot(T)} 1 :- afstudeerder(AFSTUDEERDER).
 
 % Define
 zitting_moment(DOCENT, L, D, T) :- zitting(_, _, DOCENT, _, L, D, T).
