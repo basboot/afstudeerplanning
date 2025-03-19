@@ -46,7 +46,7 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 % expertise ontwikkelen moet bij elke zitting zijn
 %:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
 
-#minimize { N : aantal_zitting_per_dag(_, _, N) }.
+% #minimize { N : aantal_zitting_per_dag(_, _, N) }.
 
 % #show zitting/7.
 
