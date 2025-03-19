@@ -7,6 +7,8 @@ import numpy as np
 from clorm import Predicate, ConstantStr
 from clorm import FactBase
 from clorm.clingo import Control
+from openpyxl.reader.excel import load_workbook
+from openpyxl.styles import Border, Side, Alignment
 
 
 # Define unifiers for predicates
@@ -111,9 +113,32 @@ def show_schedule(schedule):
 
     df = pd.DataFrame(schedule)
     df = df.drop(columns=["order"])
-    # print(df)
+    # # print(df)
 
-    df.to_excel("schedule.xlsx", index=False)
+
+    # Save to Excel first
+    file_path = "schedule.xlsx"
+    df.to_excel(file_path, index=False, engine='openpyxl')
+
+    # Load the workbook and sheet
+    wb = load_workbook(file_path)
+    ws = wb.active
+
+    # Adjusting column widths automatically based on the content
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)  # Add some padding
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Save the Excel file with adjusted column widths
+    wb.save(file_path)
 
 if __name__ == '__main__':
     # Read data from Excel files
