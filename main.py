@@ -341,7 +341,7 @@ if __name__ == '__main__':
                     "tijdslot": moment.time,
                     "lokaal": moment.room,
                     "student": moment.student,
-                    "bedrijfsbegeldeir": moment.coach,
+                    "bedrijfsbegeleider": moment.coach,
                     "voorzitter": moment.teacher1,
                     "begeleider": moment.teacher2,
                     "order": (days_order.index(moment.date), timeslotes_order.index(moment.time), rooms_order.index(moment.room))
