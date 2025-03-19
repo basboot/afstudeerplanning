@@ -52,7 +52,9 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 % TODO: voorkom zelfde duo twee keer een zitting
 
 
-#minimize { N : aantal_zitting_per_dag(_, _, N) }.
+:- aantal_zitting_per_dag(_, _, N), N > 2.
+
+% #minimize { N : aantal_zitting_per_dag(_, _, N) }.
 
 % #show zitting/7.
 
