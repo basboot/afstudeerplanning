@@ -93,12 +93,27 @@ coaches = set()
 timeslots = set()
 days = set()
 
+days_order = []
+timeslotes_order = []
+
 # Assumption: same number of rooms available each day
 rooms = [f"room{i}" for i in range(2)]
+
+rooms_order = rooms.copy()
 
 availability = defaultdict(set)
 
 zitting_constraints = []
+
+def show_schedule(schedule):
+    # sort
+    schedule.sort(key=lambda x: x["order"])
+
+    df = pd.DataFrame(schedule)
+    df = df.drop(columns=["order"])
+    print(df)
+
+    df.to_excel("schedule.xlsx", index=False)
 
 if __name__ == '__main__':
     # Read data from Excel files
@@ -117,13 +132,17 @@ if __name__ == '__main__':
             continue # skip first line
 
         timeslot = data['Tijdslot']
-        timeslots.add(timeslot)
+        if timeslot not in timeslots:
+            timeslots.add(timeslot)
+            timeslotes_order.append(timeslot)
 
         for day, available in data.items():
             pattern = r"^[A-Za-z]+ \d{1,2} [A-Za-z]+$"
             # extract (valid) days
             if re.match(pattern, day):
-                days.add(day)
+                if day not in days:
+                    days.add(day)
+                    days_order.append(day)
                 match(available):
                     case "v":
                         availability[teacher].add((day, timeslot))
@@ -305,6 +324,7 @@ if __name__ == '__main__':
 
             query = solution.query(Zitting)
             moments = list(query.all())
+            schedule = []
             for moment in moments:
                 print("===================================================")
                 print(f"{moment.date} {moment.time} ({moment.room})")
@@ -316,13 +336,22 @@ if __name__ == '__main__':
                 assert (moment.date, moment.time) in availability[moment.teacher2], f"wrong assignment for {moment.teacher2}"
                 assert (moment.date, moment.time) in availability[moment.coach], f"wrong assignment for {moment.coach}"
 
-
-
+                schedule.append({
+                    "dag": moment.date,
+                    "tijdslot": moment.time,
+                    "lokaal": moment.room,
+                    "student": moment.student,
+                    "bedrijfsbegeldeir": moment.coach,
+                    "voorzitter": moment.teacher1,
+                    "begeleider": moment.teacher2,
+                    "order": (days_order.index(moment.date), timeslotes_order.index(moment.time), rooms_order.index(moment.room))
+                })
 
             print()
             print(f"Running time: {time.time() - start_time}")
             print()
-            # exit()
+            show_schedule(schedule)
+            exit()
         print(f"Number of solutions {count}")
         print(f"Running time: {time.time() - start_time}")
 
