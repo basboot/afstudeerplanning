@@ -111,7 +111,7 @@ def show_schedule(schedule):
 
     df = pd.DataFrame(schedule)
     df = df.drop(columns=["order"])
-    print(df)
+    # print(df)
 
     df.to_excel("schedule.xlsx", index=False)
 
@@ -326,11 +326,11 @@ if __name__ == '__main__':
             moments = list(query.all())
             schedule = []
             for moment in moments:
-                print("===================================================")
-                print(f"{moment.date} {moment.time} ({moment.room})")
-                print(f"{moment.student} ({moment.coach})")
-                print(f"Voorzitter: {moment.teacher1} - expertise: {teacher_expertise[moment.teacher1]}")
-                print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
+                # print("===================================================")
+                # print(f"{moment.date} {moment.time} ({moment.room})")
+                # print(f"{moment.student} ({moment.coach})")
+                # print(f"Voorzitter: {moment.teacher1} - expertise: {teacher_expertise[moment.teacher1]}")
+                # print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
 
                 assert (moment.date, moment.time) in availability[moment.teacher1], f"wrong assignment for {moment.teacher1}"
                 assert (moment.date, moment.time) in availability[moment.teacher2], f"wrong assignment for {moment.teacher2}"
@@ -351,7 +351,7 @@ if __name__ == '__main__':
             print(f"Running time: {time.time() - start_time}")
             print()
             show_schedule(schedule)
-            exit()
+            # exit()
         print(f"Number of solutions {count}")
         print(f"Running time: {time.time() - start_time}")
 
