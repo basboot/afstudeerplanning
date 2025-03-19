@@ -271,9 +271,20 @@ if __name__ == '__main__':
     # load fixed schedule
     df = pd.read_excel(fixed_schedule_file).replace(np.nan, '')
 
+    print(students)
     for i in range(df.shape[0]):
-        data = df.iloc[i].to_dict()
-        # print(data)
+        # convert npsb to normal space
+        data = {key: (value.replace('\xa0', ' ').strip() if isinstance(value, str) else value) for key, value in df.iloc[i].to_dict().items()}
+
+        print(data)
+
+        assert data['student'] in students, f"Cannot fix schedule for unknown student {data['student']}"
+        assert data['bedrijfsbegeleider'] in coaches, f"Cannot fix schedule for unknown bedrijfsbegeleider {data['bedrijfsbegeleider']}"
+        assert data['voorzitter'] in teachers, f"Cannot fix schedule for unknown voorzitter {data['voorzitter']}"
+        assert data['begeleider'] in teachers, f"Cannot fix schedule for unknown begeleider {data['begeleider']}"
+        assert data['lokaal'] in rooms, f"Cannot fix schedule for unknown lokaal {data['lokaal']}"
+        assert data['dag'] in days, f"Cannot fix schedule for unknown dag {data['dag']}"
+        assert data['tijdslot'] in timeslots, f"Cannot fix schedule for unknown tijdslot {data['tijdslot']}"
 
         fixed_schedule.append(Zitting(student=data['student'],
                                       coach=data['bedrijfsbegeleider'],
