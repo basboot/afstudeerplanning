@@ -8,6 +8,9 @@
 zitting_moment(DOCENT, L, D, T) :- zitting(_, _, DOCENT, _, L, D, T).
 zitting_moment(DOCENT, L, D, T) :- zitting(_, _, _, DOCENT, L, D, T).
 
+duo(D1, D2, D, T) :- { zitting(_, _, D1, D2, _, D, T)
+duo(D1, D2, D, T) :- { zitting(_, _, D2, D1, _, D, T)
+
 aantal_voorzitter_per_docent(VOORZITTER, N) :- docent(VOORZITTER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, VOORZITTER, _,_,_,_) }.
 aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, _, BEGELEIDER,_,_,_) }.
 
@@ -45,6 +48,9 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 
 % expertise ontwikkelen moet bij elke zitting zijn
 %:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
+
+% TODO: voorkom zelfde duo twee keer een zitting
+
 
 #minimize { N : aantal_zitting_per_dag(_, _, N) }.
 
