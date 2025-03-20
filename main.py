@@ -235,7 +235,11 @@ if __name__ == '__main__':
             assert coach in coaches, f"{coach} unknown"
 
         # reduce availability of coach, to moments the teacher is also available
-        availability[coach] = availability[coach].intersection(availability[teacher])
+        # TODO: fix reducing availability for coach with multiple students
+        if coach == "Roel Hooiring":
+            print(f"INFO: do not reduce availability for Roel")
+        else:
+            availability[coach] = availability[coach].intersection(availability[teacher])
 
         if DEBUG:
             if len(availability[coach]) == 0:
