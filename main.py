@@ -99,13 +99,15 @@ days_order = []
 timeslotes_order = []
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(2)]
+rooms = [f"room{i}" for i in range(1)]
 
 rooms_order = rooms.copy()
 
 availability = defaultdict(set)
 
 zitting_constraints = []
+
+people_constraints = set()
 
 def show_schedule(schedule):
     # sort
@@ -265,6 +267,8 @@ if __name__ == '__main__':
         # add zitting to answer set
         zitting_constraints.append(Zitting_required(student=student, coach=coach, teacher=teacher))
 
+        people_constraints.add((student, coach, teacher))
+
     print(zitting_constraints)
 
     print(f"rooms: {len(rooms)}")
@@ -360,6 +364,8 @@ if __name__ == '__main__':
                 assert (moment.date, moment.time) in availability[moment.teacher1], f"wrong assignment for {moment.teacher1}"
                 assert (moment.date, moment.time) in availability[moment.teacher2], f"wrong assignment for {moment.teacher2}"
                 assert (moment.date, moment.time) in availability[moment.coach], f"wrong assignment for {moment.coach}"
+
+                assert (moment.student, moment.coach, moment.teacher2) in people_constraints, f"wrong people selection: {(moment.student, moment.coach, moment.teacher2)}"
 
                 schedule.append({
                     "dag": moment.date,
