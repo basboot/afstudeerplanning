@@ -8,6 +8,11 @@
 zitting_moment(DOCENT, L, D, T) :- zitting(_, _, DOCENT, _, L, D, T).
 zitting_moment(DOCENT, L, D, T) :- zitting(_, _, _, DOCENT, L, D, T).
 
+zitting_moment(DAG_TIJD) :- zitting(_, _, _, _, _, DAG, TIJD), DAG_TIJD = (DAG, TIJD).
+
+duo(D1, D2, D, T) :- zitting(_, _, D1, D2, _, D, T).
+duo(D1, D2, D, T) :- zitting(_, _, D2, D1, _, D, T).
+
 aantal_voorzitter_per_docent(VOORZITTER, N) :- docent(VOORZITTER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, VOORZITTER, _,_,_,_) }.
 aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, _, BEGELEIDER,_,_,_) }.
 
@@ -42,9 +47,19 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 :- zitting(A1, _, _, _, L, D, T), zitting(A2, _, _, _, L, D, T), A1 != A2.
 % docent niet bij 2 zittingen (2 lokalen) tegelijkertijd
 :- zitting_moment(DOCENT, L1, D, T), zitting_moment(DOCENT, L2, D, T), L1 != L2.
+% bedrijfsbegeleider niet bij 2 zittingen (2 lokalen) tegelijkertijd
+:- zitting(_, _, _, BEGELEIDER, L1, D, T), zitting(_, _, _, BEGELEIDER, L2, D, T), L1 != L2.
 
 % expertise ontwikkelen moet bij elke zitting zijn
 %:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
+
+% max 1 ontwikkelaar bij zitting
+:- duo(D1, D2, _, _), expertise_tijdens_zitting(D1, ontwikkelen),  expertise_tijdens_zitting(D2, ontwikkelen).
+
+% voorkom zelfde duo twee keer een zitting
+:- duo(DOCENT1, DOCENT2, D1, T1), duo(DOCENT1, DOCENT2, D2, T2), zitting_moment((D1, T1)) != zitting_moment((D2, T2)).
+
+:- aantal_zitting_per_dag(_, _, N), N > 2.
 
 % #minimize { N : aantal_zitting_per_dag(_, _, N) }.
 

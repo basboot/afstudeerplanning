@@ -7,6 +7,8 @@ import numpy as np
 from clorm import Predicate, ConstantStr
 from clorm import FactBase
 from clorm.clingo import Control
+from openpyxl.reader.excel import load_workbook
+from openpyxl.styles import Border, Side, Alignment
 
 
 # Define unifiers for predicates
@@ -59,7 +61,6 @@ class Beschikbaar(Predicate):
     date: ConstantStr
     time: ConstantStr
 
-
 # Define solution model
 class Zitting(Predicate):
     student: ConstantStr
@@ -70,7 +71,6 @@ class Zitting(Predicate):
     date: ConstantStr
     time: ConstantStr
 
-
 class Zitting_required(Predicate):
     student: ConstantStr
     coach: ConstantStr
@@ -79,7 +79,6 @@ class Zitting_required(Predicate):
 
 class Max_aantal_zitting_per_dag(Predicate):
     n: int
-
 
 DEBUG = True
 
@@ -101,7 +100,7 @@ days_order = []
 timeslotes_order = []
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(2)]
+rooms = [f"room{i}" for i in range(1)]
 
 rooms_order = rooms.copy()
 
@@ -109,17 +108,40 @@ availability = defaultdict(set)
 
 zitting_constraints = []
 
+people_constraints = set()
 
-def show_schedule(schedule):
+def show_schedule(schedule, n=""):
     # sort
     schedule.sort(key=lambda x: x["order"])
 
     df = pd.DataFrame(schedule)
     df = df.drop(columns=["order"])
-    # print(df)
+    # # print(df)
 
-    df.to_excel("schedule.xlsx", index=False)
 
+    # Save to Excel first
+    file_path = f"schedule{n}.xlsx"
+    df.to_excel(file_path, index=False, engine='openpyxl')
+
+    # Load the workbook and sheet
+    wb = load_workbook(file_path)
+    ws = wb.active
+
+    # Adjusting column widths automatically based on the content
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)  # Add some padding
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Save the Excel file with adjusted column widths
+    wb.save(file_path)
 
 if __name__ == '__main__':
     # Read data from Excel files
@@ -135,7 +157,7 @@ if __name__ == '__main__':
             teacher = data['Docent']
             teachers.add(teacher)
         if teacher == "":
-            continue  # skip first line
+            continue # skip first line
 
         timeslot = data['Tijdslot']
         if timeslot not in timeslots:
@@ -149,7 +171,7 @@ if __name__ == '__main__':
                 if day not in days:
                     days.add(day)
                     days_order.append(day)
-                match (available):
+                match(available):
                     case "v":
                         availability[teacher].add((day, timeslot))
                     case "x":
@@ -176,7 +198,7 @@ if __name__ == '__main__':
                 assert day in days, f"Illegal day {day} in coach availability"
                 for timeslot in available.split(";"):
                     if timeslot == "" or timeslot == "Niet":
-                        continue  # only process available slots
+                        continue # only process available slots
                     assert timeslot in timeslots, f"Illegal timeslot {timeslot} in coach availability"
 
                     availability[coach].add((day, timeslot))
@@ -217,25 +239,22 @@ if __name__ == '__main__':
 
         if DEBUG:
             if len(availability[coach]) == 0:
-                print(
-                    f"ERROR: availability for {teacher} and {coach} does not match, not planning for student {student}")
+                print(f"ERROR: availability for {teacher} and {coach} does not match, not planning for student {student}")
                 continue
             else:
-                print(
-                    f"INFO: availability for {teacher} and {coach} at {len(availability[coach])} timeslots for student {student}")
+                print(f"INFO: availability for {teacher} and {coach} at { len(availability[coach]) } timeslots for student {student}")
         else:
             assert len(availability[coach]) > 0, f"availability for {teacher} and {coach} does not match"
 
         total_matches = 0
         for teacher2 in teachers:
             if teacher == teacher2:
-                continue  # skip self
+                continue # skip self
             total_matches += len(availability[coach].intersection(availability[teacher2]))
 
         if DEBUG:
             if total_matches == 0:
-                print(
-                    f"ERROR: availability for {coach} does not match any of the other teachers, not planning for student {student}")
+                print(f"ERROR: availability for {coach} does not match any of the other teachers, not planning for student {student}")
                 continue
         else:
             assert total_matches > 0, f"availability for {coach} does not match any of the other teachers"
@@ -248,6 +267,8 @@ if __name__ == '__main__':
 
         # add zitting to answer set
         zitting_constraints.append(Zitting_required(student=student, coach=coach, teacher=teacher))
+
+        people_constraints.add((student, coach, teacher))
 
     print(zitting_constraints)
 
@@ -315,19 +336,17 @@ if __name__ == '__main__':
 
     print(instance_data)
 
-    restrict_empty_rooms = [f":- zitting(_, _, _, _, {rooms[i]}, D, T), not zitting(_, _, _, _, {rooms[i - 1]}, D, T)."
-                            for i in range(1, len(rooms))]
+    restrict_empty_rooms = [f":- zitting(_, _, _, _, {rooms[i]}, D, T), not zitting(_, _, _, _, {rooms[i-1]}, D, T)." for i in range(1, len(rooms))]
 
-    restrict_orders = [
-        f":- zitting(_, _, _, B1, {rooms[i - 1]}, D, T), zitting(_, _, _, B2, {rooms[i]}, D, T), docent(B1), docent(B2), docentorder(B1, O1), docentorder(B2, O2), O1 > O2."
-        for i in range(1, len(rooms))]
+    restrict_orders = [f":- zitting(_, _, _, B1, {rooms[i - 1]}, D, T), zitting(_, _, _, B2, {rooms[i]}, D, T), docent(B1), docent(B2), docentorder(B1, O1), docentorder(B2, O2), O1 > O2." for i in range(1, len(rooms))]
 
     instance = FactBase(instance_data)
 
+
+
+
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider,
-                                   Expertise, Tijdslot, Dag, Lokaal, Zitting, Zitting_required,
-                                   Max_aantal_zitting_per_dag])
+    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -369,11 +388,11 @@ if __name__ == '__main__':
                 # print(f"Voorzitter: {moment.teacher1} - expertise: {teacher_expertise[moment.teacher1]}")
                 # print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
 
-                assert (moment.date, moment.time) in availability[
-                    moment.teacher1], f"wrong assignment for {moment.teacher1}"
-                assert (moment.date, moment.time) in availability[
-                    moment.teacher2], f"wrong assignment for {moment.teacher2}"
+                assert (moment.date, moment.time) in availability[moment.teacher1], f"wrong assignment for {moment.teacher1}"
+                assert (moment.date, moment.time) in availability[moment.teacher2], f"wrong assignment for {moment.teacher2}"
                 assert (moment.date, moment.time) in availability[moment.coach], f"wrong assignment for {moment.coach}"
+
+                assert (moment.student, moment.coach, moment.teacher2) in people_constraints, f"wrong people selection: {(moment.student, moment.coach, moment.teacher2)}"
 
                 schedule.append({
                     "dag": moment.date,
@@ -383,17 +402,17 @@ if __name__ == '__main__':
                     "bedrijfsbegeleider": moment.coach,
                     "voorzitter": moment.teacher1,
                     "begeleider": moment.teacher2,
-                    "order": (
-                    days_order.index(moment.date), timeslotes_order.index(moment.time), rooms_order.index(moment.room))
+                    "order": (days_order.index(moment.date), timeslotes_order.index(moment.time), rooms_order.index(moment.room))
                 })
 
             print()
             print(f"Running time: {time.time() - start_time}")
             print()
-            show_schedule(schedule)
+            show_schedule(schedule, count)
             # exit()
         print(f"Number of solutions {count}")
         print(f"Running time: {time.time() - start_time}")
 
         if not solution_found:
             print("No solution possible")
+
