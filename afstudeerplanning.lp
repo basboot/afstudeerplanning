@@ -48,7 +48,7 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 % docent niet bij 2 zittingen (2 lokalen) tegelijkertijd
 :- zitting_moment(DOCENT, L1, D, T), zitting_moment(DOCENT, L2, D, T), L1 != L2.
 % bedrijfsbegeleider niet bij 2 zittingen (2 lokalen) tegelijkertijd
-:- zitting(_, _, _, BEGELEIDER, L1, D, T), zitting(_, _, _, BEGELEIDER, L2, D, T), L1 != L2.
+:- zitting(_, BEDRIJF, _, _, L1, D, T), zitting(_, BEDRIJF, _, _, L2, D, T), L1 != L2.
 
 % expertise ontwikkelen moet bij elke zitting zijn
 %:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
