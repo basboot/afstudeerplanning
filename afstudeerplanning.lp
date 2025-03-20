@@ -17,6 +17,7 @@ aantal_voorzitter_per_docent(VOORZITTER, N) :- docent(VOORZITTER), N = #count { 
 aantal_begeleider_per_docent(BEGELEIDER, N) :- docent(BEGELEIDER), N = #count { AFSTUDEERDER : zitting(AFSTUDEERDER, _, _, BEGELEIDER,_,_,_) }.
 
 aantal_zitting_per_dag(DOCENT, D, N) :- docent(DOCENT), dag(D), N = #count { T : zitting_moment(DOCENT, _, D, T) }.
+aantal_zitting_per_dag(BEDRIJF, D, N) :- bedrijfsbegeleider(BEDRIJF), dag(D), N = #count { T : zitting(_, BEDRIJF, _, _, _, D, T) }.
 
 max_aantal_zitting_per_dag(MAX_N) :- MAX_N = #max { N : aantal_zitting_per_dag(_, _, N) }.
 
