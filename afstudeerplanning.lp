@@ -53,8 +53,10 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 % expertise ontwikkelen moet bij elke zitting zijn
 %:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
 
-% TODO: voorkom zelfde duo twee keer een zitting
+% max 1 ontwikkelaar bij zitting
+:- duo(D1, D2, _, _), expertise_tijdens_zitting(D1, ontwikkelen),  expertise_tijdens_zitting(D2, ontwikkelen).
 
+% voorkom zelfde duo twee keer een zitting
 :- duo(DOCENT1, DOCENT2, D1, T1), duo(DOCENT1, DOCENT2, D2, T2), zitting_moment((D1, T1)) != zitting_moment((D2, T2)).
 
 :- aantal_zitting_per_dag(_, _, N), N > 2.
