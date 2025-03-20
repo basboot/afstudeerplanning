@@ -109,7 +109,7 @@ zitting_constraints = []
 
 people_constraints = set()
 
-def show_schedule(schedule):
+def show_schedule(schedule, n=""):
     # sort
     schedule.sort(key=lambda x: x["order"])
 
@@ -119,7 +119,7 @@ def show_schedule(schedule):
 
 
     # Save to Excel first
-    file_path = "schedule.xlsx"
+    file_path = f"schedule{n}.xlsx"
     df.to_excel(file_path, index=False, engine='openpyxl')
 
     # Load the workbook and sheet
@@ -341,6 +341,7 @@ if __name__ == '__main__':
             if count > 1:
                 continue
 
+
             solution_found = True
             print("solution found")
             solution = model.facts(atoms=True)
@@ -381,7 +382,7 @@ if __name__ == '__main__':
             print()
             print(f"Running time: {time.time() - start_time}")
             print()
-            show_schedule(schedule)
+            show_schedule(schedule, count)
             # exit()
         print(f"Number of solutions {count}")
         print(f"Running time: {time.time() - start_time}")
