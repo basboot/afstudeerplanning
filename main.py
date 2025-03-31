@@ -47,6 +47,12 @@ class Expertise(Predicate):
 class Tijdslot(Predicate):
     time: ConstantStr
 
+class Bad_combination(Predicate):
+    time1: ConstantStr
+    time2: ConstantStr
+
+class Aantal_slechte_combinaties(Predicate):
+    count: int
 
 class Dag(Predicate):
     date: ConstantStr
@@ -76,6 +82,13 @@ class Zitting_required(Predicate):
     coach: ConstantStr
     teacher: ConstantStr
 
+class Aantal_duo(Predicate):
+    teacher1: ConstantStr
+    teacher2: ConstantStr
+    n: int
+
+class Niet_unieke_duo(Predicate):
+    count: int
 
 class Max_aantal_zitting_per_dag(Predicate):
     n: int
@@ -97,7 +110,7 @@ timeslots = set()
 days = set()
 
 days_order = []
-timeslotes_order = []
+timeslots_order = []
 
 # Assumption: same number of rooms available each day
 rooms = [f"room{i}" for i in range(1)]
@@ -162,7 +175,7 @@ if __name__ == '__main__':
         timeslot = data['Tijdslot']
         if timeslot not in timeslots:
             timeslots.add(timeslot)
-            timeslotes_order.append(timeslot)
+            timeslots_order.append(timeslot)
 
         for day, available in data.items():
             pattern = r"^[A-Za-z]+ \d{1,2} [A-Za-z]+$"
@@ -188,7 +201,8 @@ if __name__ == '__main__':
         coach = data['Voornaam'] + " " + data['Achternaam']
         coaches.add(coach)
         if DEBUG:
-            print(f"INFO: reading availability for {coach}")
+            # print(f"INFO: reading availability for {coach}")
+            pass
 
         for day, available in data.items():
             day = day.replace(" beschikbaar op:", "")
@@ -237,7 +251,8 @@ if __name__ == '__main__':
         # reduce availability of coach, to moments the teacher is also available
         # TODO: fix reducing availability for coach with multiple students
         if coach == "Roel Hooiring":
-            print(f"INFO: do not reduce availability for Roel")
+            # print(f"INFO: do not reduce availability for Roel")
+            pass
         else:
             availability[coach] = availability[coach].intersection(availability[teacher])
 
@@ -246,7 +261,8 @@ if __name__ == '__main__':
                 print(f"ERROR: availability for {teacher} and {coach} does not match, not planning for student {student}")
                 continue
             else:
-                print(f"INFO: availability for {teacher} and {coach} at { len(availability[coach]) } timeslots for student {student}")
+                # print(f"INFO: availability for {teacher} and {coach} at { len(availability[coach]) } timeslots for student {student}")
+                pass
         else:
             assert len(availability[coach]) > 0, f"availability for {teacher} and {coach} does not match"
 
@@ -279,6 +295,8 @@ if __name__ == '__main__':
     print(f"rooms: {len(rooms)}")
     print(f"days: {len(days)}")
     print(f"timeslots: {len(timeslots)}")
+
+    assert len(timeslots) == 4, f"Too many timeslots, check spelling: {timeslots}"
     print(f"teachers: {len(teachers)}")
     print(f"students: {len(students)}")
     print(f"coaches: {len(coaches)}")
@@ -320,9 +338,20 @@ if __name__ == '__main__':
                                       time=data['tijdslot']))
     print(fixed_schedule)
 
+    print(timeslots_order)
+    # exit()
+
+    # prevent 2 in a row
+    bad_timeslot_combinations = []
+    for i in range(1, len(timeslots)):
+        bad_timeslot_combinations.append(Bad_combination(time1=timeslots_order[i - 1], time2=timeslots_order[i]))
+    # also prevent first and last
+    bad_timeslot_combinations.append(Bad_combination(time1=timeslots_order[0], time2=timeslots_order[-1]))
+
     # Create predicates from data
     instance_data = []
     instance_data += zitting_constraints + fixed_schedule
+    instance_data += bad_timeslot_combinations
 
     instance_data += [Afstudeerder(name=n) for n in students]
     instance_data += [Docent(name=n) for n in teachers]
@@ -350,7 +379,7 @@ if __name__ == '__main__':
 
 
     # Connect to clingo
-    ctrl = Control(["0"], unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag])
+    ctrl = Control(unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag, Niet_unieke_duo, Bad_combination, Aantal_slechte_combinaties, Aantal_duo])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -369,8 +398,8 @@ if __name__ == '__main__':
         solution_found = False
         for model in handle:
             count += 1
-            if count > 1:
-                continue
+            # if count > 1:
+            #     continue
 
             solution_found = True
             print("solution found")
@@ -381,6 +410,21 @@ if __name__ == '__main__':
             query = solution.query(Max_aantal_zitting_per_dag)
             max_zittingen = list(query.all())
             print(f"Maximum per teacher per day: {max_zittingen[0].n}")
+
+            query = solution.query(Aantal_duo)
+            n_duo = list(query.all())
+            for duo in n_duo:
+                if duo.n > 0:
+                    print(f"{duo.teacher1} - {duo.teacher2}: {duo.n}")
+
+            query = solution.query(Niet_unieke_duo)
+            not_unique = list(query.all())
+            print(f"Number of not unique duo's: {not_unique}")
+
+            query = solution.query(Aantal_slechte_combinaties)
+            bad_combinations = list(query.all())
+            print(f"Number of bad combinations: {bad_combinations[0].count}")
+
 
             query = solution.query(Zitting)
             moments = list(query.all())
@@ -406,7 +450,7 @@ if __name__ == '__main__':
                     "bedrijfsbegeleider": moment.coach,
                     "voorzitter": moment.teacher1,
                     "begeleider": moment.teacher2,
-                    "order": (days_order.index(moment.date), timeslotes_order.index(moment.time), rooms_order.index(moment.room))
+                    "order": (days_order.index(moment.date), timeslots_order.index(moment.time), rooms_order.index(moment.room))
                 })
 
             print()
@@ -419,4 +463,5 @@ if __name__ == '__main__':
 
         if not solution_found:
             print("No solution possible")
+
 
