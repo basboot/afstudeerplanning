@@ -69,7 +69,7 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 %:- not expertise_tijdens_zitting(A, ontwikkelen), afstudeerder(A).
 
 % max 1 ontwikkelaar bij zitting
-:- duo(D1, D2, _, _), expertise_tijdens_zitting(D1, ontwikkelen),  expertise_tijdens_zitting(D2, ontwikkelen).
+:- duo_zonder_dubbelen(D1, D2, _, _), expertise(D1, ontwikkelen),  expertise(D2, ontwikkelen).
 
 % hoe vaak een specifiek duo maximaal voor mag komen
 :- aantal_duo(D1, D2, N), N > 2.
