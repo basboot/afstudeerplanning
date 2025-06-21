@@ -47,12 +47,15 @@ class Expertise(Predicate):
 class Tijdslot(Predicate):
     time: ConstantStr
 
+
 class Bad_combination(Predicate):
     time1: ConstantStr
     time2: ConstantStr
 
+
 class Aantal_slechte_combinaties(Predicate):
     count: int
+
 
 class Dag(Predicate):
     date: ConstantStr
@@ -67,6 +70,7 @@ class Beschikbaar(Predicate):
     date: ConstantStr
     time: ConstantStr
 
+
 # Define solution model
 class Zitting(Predicate):
     student: ConstantStr
@@ -77,21 +81,26 @@ class Zitting(Predicate):
     date: ConstantStr
     time: ConstantStr
 
+
 class Zitting_required(Predicate):
     student: ConstantStr
     coach: ConstantStr
     teacher: ConstantStr
+
 
 class Aantal_duo(Predicate):
     teacher1: ConstantStr
     teacher2: ConstantStr
     n: int
 
+
 class Niet_unieke_duo(Predicate):
     count: int
 
+
 class Max_aantal_zitting_per_dag(Predicate):
     n: int
+
 
 DEBUG = True
 
@@ -113,7 +122,7 @@ days_order = []
 timeslots_order = []
 
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(1)]
+rooms = [f"room{i}" for i in range(2)]
 
 rooms_order = rooms.copy()
 
@@ -123,6 +132,7 @@ zitting_constraints = []
 
 people_constraints = set()
 
+
 def show_schedule(schedule, n=""):
     # sort
     schedule.sort(key=lambda x: x["order"])
@@ -130,7 +140,6 @@ def show_schedule(schedule, n=""):
     df = pd.DataFrame(schedule)
     df = df.drop(columns=["order"])
     # # print(df)
-
 
     # Save to Excel first
     file_path = f"schedule{n}.xlsx"
@@ -156,6 +165,7 @@ def show_schedule(schedule, n=""):
     # Save the Excel file with adjusted column widths
     wb.save(file_path)
 
+
 if __name__ == '__main__':
     # Read data from Excel files
 
@@ -170,7 +180,7 @@ if __name__ == '__main__':
             teacher = data['Docent']
             teachers.add(teacher)
         if teacher == "":
-            continue # skip first line
+            continue  # skip first line
 
         timeslot = data['Tijdslot']
         if timeslot not in timeslots:
@@ -184,7 +194,7 @@ if __name__ == '__main__':
                 if day not in days:
                     days.add(day)
                     days_order.append(day)
-                match(available):
+                match (available):
                     case "v":
                         availability[teacher].add((day, timeslot))
                     case "x":
@@ -212,7 +222,7 @@ if __name__ == '__main__':
                 assert day in days, f"Illegal day {day} in coach availability"
                 for timeslot in available.split(";"):
                     if timeslot == "" or timeslot == "Niet":
-                        continue # only process available slots
+                        continue  # only process available slots
                     assert timeslot in timeslots, f"Illegal timeslot {timeslot} in coach availability"
 
                     availability[coach].add((day, timeslot))
@@ -258,7 +268,8 @@ if __name__ == '__main__':
 
         if DEBUG:
             if len(availability[coach]) == 0:
-                print(f"ERROR: availability for {teacher} and {coach} does not match, not planning for student {student}")
+                print(
+                    f"ERROR: availability for {teacher} and {coach} does not match, not planning for student {student}")
                 continue
             else:
                 # print(f"INFO: availability for {teacher} and {coach} at { len(availability[coach]) } timeslots for student {student}")
@@ -269,12 +280,13 @@ if __name__ == '__main__':
         total_matches = 0
         for teacher2 in teachers:
             if teacher == teacher2:
-                continue # skip self
+                continue  # skip self
             total_matches += len(availability[coach].intersection(availability[teacher2]))
 
         if DEBUG:
             if total_matches == 0:
-                print(f"ERROR: availability for {coach} does not match any of the other teachers, not planning for student {student}")
+                print(
+                    f"ERROR: availability for {coach} does not match any of the other teachers, not planning for student {student}")
                 continue
         else:
             assert total_matches > 0, f"availability for {coach} does not match any of the other teachers"
@@ -317,12 +329,14 @@ if __name__ == '__main__':
     print(students)
     for i in range(df.shape[0]):
         # convert npsb to normal space
-        data = {key: (value.replace('\xa0', ' ').strip() if isinstance(value, str) else value) for key, value in df.iloc[i].to_dict().items()}
+        data = {key: (value.strip() if isinstance(value, str) else value) for key, value in
+                df.iloc[i].to_dict().items()}
 
         print(data)
 
         assert data['student'] in students, f"Cannot fix schedule for unknown student {data['student']}"
-        assert data['bedrijfsbegeleider'] in coaches, f"Cannot fix schedule for unknown bedrijfsbegeleider {data['bedrijfsbegeleider']}"
+        assert data[
+                   'bedrijfsbegeleider'] in coaches, f"Cannot fix schedule for unknown bedrijfsbegeleider {data['bedrijfsbegeleider']}"
         assert data['voorzitter'] in teachers, f"Cannot fix schedule for unknown voorzitter {data['voorzitter']}"
         assert data['begeleider'] in teachers, f"Cannot fix schedule for unknown begeleider {data['begeleider']}"
         assert data['lokaal'] in rooms, f"Cannot fix schedule for unknown lokaal {data['lokaal']}"
@@ -369,17 +383,20 @@ if __name__ == '__main__':
 
     print(instance_data)
 
-    restrict_empty_rooms = [f":- zitting(_, _, _, _, {rooms[i]}, D, T), not zitting(_, _, _, _, {rooms[i-1]}, D, T)." for i in range(1, len(rooms))]
+    restrict_empty_rooms = [f":- zitting(_, _, _, _, {rooms[i]}, D, T), not zitting(_, _, _, _, {rooms[i - 1]}, D, T)."
+                            for i in range(1, len(rooms))]
 
-    restrict_orders = [f":- zitting(_, _, _, B1, {rooms[i - 1]}, D, T), zitting(_, _, _, B2, {rooms[i]}, D, T), docent(B1), docent(B2), docentorder(B1, O1), docentorder(B2, O2), O1 > O2." for i in range(1, len(rooms))]
+    restrict_orders = [
+        f":- zitting(_, _, _, B1, {rooms[i - 1]}, D, T), zitting(_, _, _, B2, {rooms[i]}, D, T), docent(B1), docent(B2), docentorder(B1, O1), docentorder(B2, O2), O1 > O2."
+        for i in range(1, len(rooms))]
 
     instance = FactBase(instance_data)
 
-
-
-
     # Connect to clingo
-    ctrl = Control(unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise, Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag, Niet_unieke_duo, Bad_combination, Aantal_slechte_combinaties, Aantal_duo])
+    ctrl = Control(
+        unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise,
+                 Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag, Niet_unieke_duo,
+                 Bad_combination, Aantal_slechte_combinaties, Aantal_duo])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -425,7 +442,6 @@ if __name__ == '__main__':
             bad_combinations = list(query.all())
             print(f"Number of bad combinations: {bad_combinations[0].count}")
 
-
             query = solution.query(Zitting)
             moments = list(query.all())
             schedule = []
@@ -436,11 +452,14 @@ if __name__ == '__main__':
                 # print(f"Voorzitter: {moment.teacher1} - expertise: {teacher_expertise[moment.teacher1]}")
                 # print(f"Begeleider: {moment.teacher2} - expertise: {teacher_expertise[moment.teacher2]}")
 
-                assert (moment.date, moment.time) in availability[moment.teacher1], f"wrong assignment for {moment.teacher1}"
-                assert (moment.date, moment.time) in availability[moment.teacher2], f"wrong assignment for {moment.teacher2}"
+                assert (moment.date, moment.time) in availability[
+                    moment.teacher1], f"wrong assignment for {moment.teacher1}"
+                assert (moment.date, moment.time) in availability[
+                    moment.teacher2], f"wrong assignment for {moment.teacher2}"
                 assert (moment.date, moment.time) in availability[moment.coach], f"wrong assignment for {moment.coach}"
 
-                assert (moment.student, moment.coach, moment.teacher2) in people_constraints, f"wrong people selection: {(moment.student, moment.coach, moment.teacher2)}"
+                assert (moment.student, moment.coach,
+                        moment.teacher2) in people_constraints, f"wrong people selection: {(moment.student, moment.coach, moment.teacher2)}"
 
                 schedule.append({
                     "dag": moment.date,
@@ -450,7 +469,8 @@ if __name__ == '__main__':
                     "bedrijfsbegeleider": moment.coach,
                     "voorzitter": moment.teacher1,
                     "begeleider": moment.teacher2,
-                    "order": (days_order.index(moment.date), timeslots_order.index(moment.time), rooms_order.index(moment.room))
+                    "order": (
+                    days_order.index(moment.date), timeslots_order.index(moment.time), rooms_order.index(moment.room))
                 })
 
             print()
@@ -463,5 +483,3 @@ if __name__ == '__main__':
 
         if not solution_found:
             print("No solution possible")
-
-
