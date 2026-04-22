@@ -56,6 +56,14 @@ class Bad_combination(Predicate):
 class Aantal_slechte_combinaties(Predicate):
     count: int
 
+class Aantal_voorzitter_per_docent(Predicate):
+    teacher: ConstantStr
+    n: int
+
+class Fixed_aantal_voorzitter_per_docent(Predicate):
+    teacher: ConstantStr
+    n: int
+
 
 class Dag(Predicate):
     date: ConstantStr
@@ -104,15 +112,21 @@ class Max_aantal_zitting_per_dag(Predicate):
 
 DEBUG = True
 
-teacher_availability_file = "BeschikbaarheidDocentenJuli25.xlsx"
-coach_availability_file = "Beschikbaarheid bedrijfsbegeleider.xlsx"
-teacher_student_coach_file = "Afstudeerders 2024-2025.xlsx"
+teacher_availability_file = "test/BeschikbaarheidDocentenFeb26.xlsx"
+coach_availability_file = "test/Beschikbaarheid bedrijfsbegeleider februari.xlsx"
+teacher_student_coach_file = "test/Afstudeerders 2526.xlsx"
 teacher_expertise_file = "Expertises.xlsx"
 fixed_schedule_file = "fixed.xlsx"
+# set to None if not used
+teacher1_availability_file = "test/AantalKeerVoorzitterFeb26.xlsx"
+
 
 # Assumption: teacher names are unique
 teachers = set()
 coaches = set()
+
+# Used to overrule number of times teacher2 == teacher1
+teacher1_availability = {}
 
 # Assumption: timeslots are the same on each day
 timeslots = set()
@@ -121,8 +135,11 @@ days = set()
 days_order = []
 timeslots_order = []
 
+NUMBER_OF_ROOMS = 2
+TEACHER_STUDENT_COACH_SHEET = "Afstudeerders Sem 1"
+
 # Assumption: same number of rooms available each day
-rooms = [f"room{i}" for i in range(2)]
+rooms = [f"room{i}" for i in range(NUMBER_OF_ROOMS)]
 
 rooms_order = rooms.copy()
 
@@ -200,7 +217,21 @@ if __name__ == '__main__':
                     case "x":
                         pass
                     case _:
-                        assert False, f"Illegal input {teacher} {day} {timeslot}"
+                        assert False, f"Illegal input ({available}) at {teacher} {day} {timeslot}"
+
+
+    # Teacher1 availability (optional)
+    if teacher1_availability_file is not None:
+        df = pd.read_excel(teacher1_availability_file).replace(np.nan, '')
+
+        for i in range(df.shape[0]):
+            data = df.iloc[i].to_dict()
+
+            teacher = data['Docent']
+            number_of_times_teacher1 = data['Voorzitter']
+
+            assert teacher in teachers, "Teacher in teacher1 does not exist in overall availability"
+            teacher1_availability[teacher] = number_of_times_teacher1
 
     # Coach availability
     df = pd.read_excel(coach_availability_file).replace(np.nan, '')
@@ -211,24 +242,33 @@ if __name__ == '__main__':
         coach = data['Voornaam'] + " " + data['Achternaam']
         coaches.add(coach)
         if DEBUG:
-            # print(f"INFO: reading availability for {coach}")
+            print(f"INFO: reading availability for {coach}")
             pass
 
+        # need to go over all items, because we do not know the exact labels for day/timeslots
         for day, available in data.items():
-            day = day.replace(" beschikbaar op:", "")
+            day = day.replace("\xa0", " ").replace("\n", "").replace(" beschikbaar op:", "")
             pattern = r"^[A-Za-z]+ \d{1,2} [A-Za-z]+$"
             # extract (valid) days
             if re.match(pattern, day):
-                assert day in days, f"Illegal day {day} in coach availability"
+                assert day in days, f"Illegal day >{day}< in coach availability. legal: {days}"
+                # print(f"Process {available}")
                 for timeslot in available.split(";"):
                     if timeslot == "" or timeslot == "Niet":
                         continue  # only process available slots
                     assert timeslot in timeslots, f"Illegal timeslot {timeslot} in coach availability"
 
                     availability[coach].add((day, timeslot))
+                    # if DEBUG:
+                    #     print(f"Add coach availability: {coach} => {day}, {timeslot}")
+
+
+    if DEBUG:
+        print("Availabiliy")
+        print(availability)
 
     # Students + connections
-    df = pd.read_excel(teacher_student_coach_file, sheet_name='Sem. 2').replace(np.nan, '')
+    df = pd.read_excel(teacher_student_coach_file, sheet_name=TEACHER_STUDENT_COACH_SHEET).replace(np.nan, '')
 
     teacher_student = []
     teacher_coach = []
@@ -261,7 +301,7 @@ if __name__ == '__main__':
         # reduce availability of coach, to moments the teacher is also available
         # TODO: fix reducing availability for coach with multiple students
         if coach == "Roel Hooiring":
-            # print(f"INFO: do not reduce availability for Roel")
+            print(f"INFO: do not reduce availability for Roel")
             pass
         else:
             availability[coach] = availability[coach].intersection(availability[teacher])
@@ -390,13 +430,31 @@ if __name__ == '__main__':
         f":- zitting(_, _, _, B1, {rooms[i - 1]}, D, T), zitting(_, _, _, B2, {rooms[i]}, D, T), docent(B1), docent(B2), docentorder(B1, O1), docentorder(B2, O2), O1 > O2."
         for i in range(1, len(rooms))]
 
+    # TODO: move aantal voorzitter per docent to Python
+    # % % aantal keer voorzitter en begeleider moet gelijk zijn
+    # :- aantal_voorzitter_per_docent(D, N1), aantal_begeleider_per_docent(D, N2), N1 != N2.
+    # restrict number of times someone is teacher1, default is same timeds as teacher2 (teacher2 is always fixed by number of students coached)
+
+    if len(teacher1_availability) == 0:
+        print("Use normal assignment teacher1 == teacher2 availability")
+        restrict_teacher1s = [
+            f":- aantal_voorzitter_per_docent(D, N1), aantal_begeleider_per_docent(D, N2), N1 != N2."
+        ]
+    else:
+        print("Override teacher1 == teacher2 availability")
+        restrict_teacher1s = [
+            f":- aantal_voorzitter_per_docent(D, N1), fixed_aantal_voorzitter_per_docent(D, N2), N1 != N2."
+        ]
+        print(teacher1_availability)
+        instance_data += [Fixed_aantal_voorzitter_per_docent(teacher=teacher, n=count) for teacher, count in teacher1_availability.items()]
+
     instance = FactBase(instance_data)
 
     # Connect to clingo
     ctrl = Control(
         unifier=[Afstudeerder, Docent, Docentorder, Expertise, Begeleider, Coach, Bedrijfsbegeleider, Expertise,
                  Tijdslot, Dag, Lokaal, Zitting, Zitting_required, Max_aantal_zitting_per_dag, Niet_unieke_duo,
-                 Bad_combination, Aantal_slechte_combinaties, Aantal_duo])
+                 Bad_combination, Aantal_slechte_combinaties, Aantal_duo, Aantal_voorzitter_per_docent, Fixed_aantal_voorzitter_per_docent])
     ctrl.load("afstudeerplanning.lp")
 
     ctrl.add_facts(instance)
@@ -406,6 +464,9 @@ if __name__ == '__main__':
 
     for restrict_order in restrict_orders:
         ctrl.add("base", [], restrict_order)
+
+    for restrict_teacher1 in restrict_teacher1s:
+        ctrl.add("base", [], restrict_teacher1)
 
     ctrl.ground([("base", [])])
 
@@ -441,6 +502,11 @@ if __name__ == '__main__':
             query = solution.query(Aantal_slechte_combinaties)
             bad_combinations = list(query.all())
             print(f"Number of bad combinations: {bad_combinations[0].count}")
+
+            query = solution.query(Aantal_voorzitter_per_docent)
+            n_teacher1s = list(query.all())
+            for n_teacher1 in n_teacher1s:
+                print(f"Voorzitter: {n_teacher1.teacher} - {n_teacher1.n}")
 
             query = solution.query(Zitting)
             moments = list(query.all())

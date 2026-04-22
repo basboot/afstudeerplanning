@@ -56,7 +56,8 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 :- zitting(_, _, _, BEGELEIDER, _, D, T), not beschikbaar(BEGELEIDER, D, T).
 
 % % aantal keer voorzitter en begeleider moet gelijk zijn
-:- aantal_voorzitter_per_docent(D, N1), aantal_begeleider_per_docent(D, N2), N1 != N2.
+% Moved to Python for more flexibility in number of sessions
+%:- aantal_voorzitter_per_docent(D, N1), aantal_begeleider_per_docent(D, N2), N1 != N2.
 
 % geen 2 zittingen op zelfde tijd in zelfde lokaal
 :- zitting(A1, _, _, _, L, D, T), zitting(A2, _, _, _, L, D, T), A1 != A2.
@@ -72,10 +73,10 @@ expertise_tijdens_zitting(A, E) :- zitting(A, _, _, B, _, _, _), expertise(B, E)
 :- duo_zonder_dubbelen(D1, D2, _, _), expertise(D1, ontwikkelen),  expertise(D2, ontwikkelen).
 
 % hoe vaak een specifiek duo maximaal voor mag komen
-:- aantal_duo(D1, D2, N), N > 2.
+:- aantal_duo(D1, D2, N), N > 3.
 
 % hoeveel niet unieke duo's voor mogen komen
-:- niet_unieke_duo(COUNT), COUNT > 2.
+:- niet_unieke_duo(COUNT), COUNT > 100.
 
 % voorkom dubbele duo's
 %:- duo_zonder_dubbelen(D1, D2, DAG1, T1), duo_zonder_dubbelen(D1, D2, DAG2, T2), (DAG1, T1) != (DAG2, T2).
